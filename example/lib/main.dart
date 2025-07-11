@@ -1,5 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_libserialport/flutter_libserialport.dart';
+import 'package:flutter_libserialport/src/enums.dart';
+import 'package:flutter_libserialport/src/port.dart';
 
 void main() => runApp(ExampleApp());
 
@@ -27,6 +31,8 @@ extension IntToString on int {
 
 class _ExampleAppState extends State<ExampleApp> {
   var availablePorts = [];
+  late final SerialPort _port;
+  late final SerialPortReader _reader;
 
   @override
   void initState() {
@@ -35,6 +41,22 @@ class _ExampleAppState extends State<ExampleApp> {
   }
 
   void initPorts() {
+    availablePorts = SerialPort.availablePorts;
+    _port = SerialPort(availablePorts[0]);
+    _port.config.baudRate = 115200;
+
+    if (!_port.openReadWrite()) {
+      throw Exception('Không mở được cổng');
+    }
+
+    _reader = SerialPortReader(_port);
+    Stream<Uint8List> upcomingData = _reader.stream.map((data) {
+      return data;
+    });
+    upcomingData.listen((data) {
+      print('===> $data');
+    });
+
     setState(() => availablePorts = SerialPort.availablePorts);
   }
 
